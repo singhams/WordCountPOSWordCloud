@@ -19,6 +19,9 @@ import streamlit as st
 from wordcloud import WordCloud
 import pandas as pd
 import tempfile
+import base64
+import datetime
+import io
 import os
 import re
 from nltk.corpus import stopwords
@@ -83,32 +86,20 @@ if uploaded_file is not None:
             df = pd.DataFrame(list(word_freq.items()), columns=['Word', 'Frequency'])
             df['POS'] = df['Word'].map(pos)
 
-            st.success("POS Tagger and Word Counter ran successfully.")
-            # Display the first ten rows of the data frame
-            st.dataframe(df.head(10))
-        except Exception as e:
-            st.error(f"Error: {e}")
-    
-    # Set the output file location to the directory of the current script
-    output_file_location = os.path.dirname(os.path.realpath(__file__))
-
-    if st.button('Export CSV'):
-        try:
-            # Call your function
-            word_freq, pos = word_frequency_list(temp_file_path)
-
-            # Create a data frame of the results
-            df = pd.DataFrame(list(word_freq.items()), columns=['Word', 'Frequency'])
-            df['POS'] = df['Word'].map(pos)
-
-            # Output the dataframe to a CSV file
-            df.to_csv(os.path.join(output_file_location, 'words.csv'))
-            st.success("CSV exported successfully.")
-            st.info("Your CSV file will be in the same folder that you put this app.")
-        
+            st.success("POS Tagger and Word Counter ran successfully. Here are the first 20 rows of the data frame:")
+            # Display the first 20 rows of the data frame
+            st.dataframe(df.head(20))
         except Exception as e:
             st.error(f"Error: {e}")
 
+        # Generate a unique filename based on the current date and time
+        filename = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv'
+
+        # Create a download button for the DataFrame
+        csv = df.to_csv(index=False)
+        b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+        href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download the complete output as a csv file</a>'
+        st.markdown(href, unsafe_allow_html=True)
 
     if st.button('Generate Word Cloud'):
         try:
@@ -119,11 +110,18 @@ if uploaded_file is not None:
             # Create the word cloud
             wordcloud = WordCloud(width=800, height=800, background_color='white', min_font_size=10).generate(text)
 
-            # Save the word cloud as a png file
-            wordcloud.to_file(os.path.join(output_file_location, 'wordcloud.png'))
+            # Convert the word cloud to a PNG image
+            image_stream = io.BytesIO()
+            wordcloud.to_image().save(image_stream, format='PNG')
+            image_bytes = image_stream.getvalue()
+
+            # Create a download button for the image
+            b64 = base64.b64encode(image_bytes).decode()
+            href = f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">Download word cloud image</a>'
+            st.markdown(href, unsafe_allow_html=True)
 
             # Display the word cloud
-            st.image(os.path.join(output_file_location, 'wordcloud.png'))
+            st.image(wordcloud.to_array())
             st.success("Word cloud generated successfully.")
         except Exception as e:
             st.error(f"Error: {e}")
