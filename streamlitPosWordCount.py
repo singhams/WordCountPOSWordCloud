@@ -20,7 +20,7 @@ from wordcloud import WordCloud
 import pandas as pd
 import tempfile
 import base64
-import datetime
+from datetime import datetime
 import io
 import os
 import re
