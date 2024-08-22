@@ -10,7 +10,7 @@ import os
 import re
 from nltk.corpus import stopwords
 from nltk import pos_tag
-from nltk.tokenize import word_tokenize
+from nltk.tokenize.punkt import PunktTokenizer
 
 def download_nltk_packages():
     nltk_packages = [
@@ -38,7 +38,8 @@ def word_frequency_list(file):
         # remove symbols and special characters
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
         # tokenize the text into words
-        words = word_tokenize(text)
+        tokenizer = PunktTokenizer()
+        words = tokenizer.tokenize(text)
         # remove stop words
         stop_words = set(stopwords.words('english'))
         words = [word for word in words if word not in stop_words]
