@@ -1,4 +1,16 @@
 import nltk
+import streamlit as st
+from wordcloud import WordCloud
+import pandas as pd
+import tempfile
+import base64
+from datetime import datetime
+import io
+import os
+import re
+from nltk.corpus import stopwords
+from nltk import pos_tag
+from nltk.tokenize import word_tokenize
 
 def download_nltk_packages():
     nltk_packages = [
@@ -14,19 +26,6 @@ def download_nltk_packages():
             nltk.download(package[1])
 
 download_nltk_packages()
-
-import streamlit as st
-from wordcloud import WordCloud
-import pandas as pd
-import tempfile
-import base64
-from datetime import datetime
-import io
-import os
-import re
-from nltk.corpus import stopwords
-from nltk import pos_tag
-from nltk.tokenize import word_tokenize
 
 #function to count the frequency of each word in a text file and identify the part of speech of each word
 def word_frequency_list(file):
