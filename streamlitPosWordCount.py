@@ -85,6 +85,9 @@ if uploaded_file is not None:
             df = pd.DataFrame(list(word_freq.items()), columns=['Word', 'Frequency'])
             df['POS'] = df['Word'].map(pos)
 
+            # Sort the DataFrame by Frequency in descending order
+            df = df.sort_values(by='Frequency', ascending=False)
+
             st.success("POS Tagger and Word Counter ran successfully.")
             # Display the first 20 rows of the data frame
             st.dataframe(df.head(20))
@@ -111,10 +114,12 @@ if uploaded_file is not None:
             wordcloud = WordCloud(width=800, height=800, background_color='white', min_font_size=10).generate(text)
 
             # Save the word cloud as a png file
-            wordcloud.to_file(os.path.join(output_file_location, 'wordcloud.png'))
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_image_file:
+                wordcloud.to_file(temp_image_file.name)
+                temp_image_path = temp_image_file.name
 
             # Display the word cloud
-            st.image(os.path.join(output_file_location, 'wordcloud.png'))
+            st.image(temp_image_path)
             st.success("Word cloud generated successfully.")
         except Exception as e:
             st.error(f"Error: {e}")
