@@ -20,62 +20,56 @@ from wordcloud import WordCloud
 import pandas as pd
 import tempfile
 import base64
-from datetime import datetime
+import datetime
 import io
 import os
 import re
 from nltk.corpus import stopwords
-from nltk import pos_tag
-from nltk.tokenize import word_tokenize
+from nltk.tokenize.punkt import PunktTokenizer
+from nltk.tag.perceptron import PerceptronTagger
 
-#function to count the frequency of each word in a text file and identify the part of speech of each word
+# Function to count the frequency of each word in a text file and identify the part of speech of each word
 def word_frequency_list(file):
-    # open the file
+    # Open the file
     with open(file, 'r') as f:
-        # read the file
+        # Read the file
         text = f.read()
-        # convert the text to lowercase
+        # Convert the text to lowercase
         text = text.lower()
-        # remove symbols and special characters
+        # Remove symbols and special characters
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-        # tokenize the text into words
-        words = word_tokenize(text)
-        # remove stop words
+        # Tokenize the text into words using PunktTokenizer
+        tokenizer = PunktTokenizer()
+        words = tokenizer.tokenize(text)
+        # Remove stop words
         stop_words = set(stopwords.words('english'))
         words = [word for word in words if word not in stop_words]
-        # create a dictionary to store the word frequency
+        # Create a dictionary to store the word frequency
         word_freq = {}
-        # create a dictionary to store the part of speech of each word
+        # Create a dictionary to store the part of speech of each word
         pos = {}
-        # tag the words with their part of speech
-        tagged_words = pos_tag(words)
-        # for each word in the text
-        for word in tagged_words:
-             # if the word is not in the dictionary and the word is not a digit
-            if word[0] not in word_freq and not word[0].isdigit():
-                # add the word to the dictionary with a frequency of 1
-                word_freq[word[0]] = 1
-                # add the part of speech to the dictionary
-                pos[word[0]] = word[1]
-            # if the word is in the dictionary
-            elif word[0] in word_freq:
-                # add 1 to the frequency
-                word_freq[word[0]] += 1
-        # return the word frequency dictionary
+        # Tag the words with their part of speech using PerceptronTagger
+        tagger = PerceptronTagger()
+        tagged_words = tagger.tag(words)
+        # For each word in the text
+        for word, tag in tagged_words:
+            if word in word_freq:
+                word_freq[word] += 1
+            else:
+                word_freq[word] = 1
+            pos[word] = tag
         return word_freq, pos
 
-# Add a title
-st.title('Word Count and Part of Speech Tagger')
+# Streamlit app code
+st.title("Word Frequency and POS Tagger")
 
-# Add a file uploader
 uploaded_file = st.file_uploader("Choose a text file", type="txt")
 
 if uploaded_file is not None:
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False) as fp:
-        # Write the uploaded file to the temporary file
-        fp.write(uploaded_file.getvalue())
-        temp_file_path = fp.name
+    # Save the uploaded file to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(uploaded_file.read())
+        temp_file_path = temp_file.name
 
     if st.button('Run POS Tagger and Word Counter'):
         try:
@@ -86,20 +80,41 @@ if uploaded_file is not None:
             df = pd.DataFrame(list(word_freq.items()), columns=['Word', 'Frequency'])
             df['POS'] = df['Word'].map(pos)
 
-            st.success("POS Tagger and Word Counter ran successfully. Here are the first 20 rows of the data frame:")
+            st.success("POS Tagger and Word Counter ran successfully.")
             # Display the first 20 rows of the data frame
             st.dataframe(df.head(20))
+
+            # Generate a unique filename based on the current date and time
+            filename = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv'
+
+            # Create a download button for the DataFrame
+            csv = df.to_csv(index=False)
+            b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+            href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download csv file</a>'
+            st.markdown(href, unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Error: {e}")
+    
+    # Set the output file location to the directory of the current script
+    output_file_location = os.path.dirname(os.path.realpath(__file__))
+
+    if st.button('Export CSV'):
+        try:
+            # Call your function
+            word_freq, pos = word_frequency_list(temp_file_path)
+
+            # Create a data frame of the results
+            df = pd.DataFrame(list(word_freq.items()), columns=['Word', 'Frequency'])
+            df['POS'] = df['Word'].map(pos)
+
+            # Output the dataframe to a CSV file
+            df.to_csv(os.path.join(output_file_location, 'words.csv'))
+            st.success("CSV exported successfully.")
+            st.info("Your CSV file will be in the same folder that you put this app.")
+        
         except Exception as e:
             st.error(f"Error: {e}")
 
-        # Generate a unique filename based on the current date and time
-        filename = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv'
-
-        # Create a download button for the DataFrame
-        csv = df.to_csv(index=False)
-        b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-        href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download the complete output as a csv file</a>'
-        st.markdown(href, unsafe_allow_html=True)
 
     if st.button('Generate Word Cloud'):
         try:
@@ -110,18 +125,11 @@ if uploaded_file is not None:
             # Create the word cloud
             wordcloud = WordCloud(width=800, height=800, background_color='white', min_font_size=10).generate(text)
 
-            # Convert the word cloud to a PNG image
-            image_stream = io.BytesIO()
-            wordcloud.to_image().save(image_stream, format='PNG')
-            image_bytes = image_stream.getvalue()
-
-            # Create a download button for the image
-            b64 = base64.b64encode(image_bytes).decode()
-            href = f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">Download word cloud image</a>'
-            st.markdown(href, unsafe_allow_html=True)
+            # Save the word cloud as a png file
+            wordcloud.to_file(os.path.join(output_file_location, 'wordcloud.png'))
 
             # Display the word cloud
-            st.image(wordcloud.to_array())
+            st.image(os.path.join(output_file_location, 'wordcloud.png'))
             st.success("Word cloud generated successfully.")
         except Exception as e:
             st.error(f"Error: {e}")
