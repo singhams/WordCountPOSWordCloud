@@ -63,8 +63,11 @@ def word_frequency_list(file):
         
         return word_freq, pos
 
-# Streamlit app code
+# Streamlit app title
 st.title("Word Frequency and POS Tagger")
+
+# App description
+st.write("A simple tool to count the words in a text file and tag them with their part of speech. Oh, and also create a word cloud, because why not?")
 
 uploaded_file = st.file_uploader("Choose a text file", type="txt")
 
