@@ -5,6 +5,7 @@ def download_nltk_packages():
         ('tokenizers', 'punkt'),
         ('corpora', 'stopwords'),
         ('taggers', 'averaged_perceptron_tagger'),
+        ('tokenizers', 'punkt_tab'),
     ]
 
     for package in nltk_packages:
