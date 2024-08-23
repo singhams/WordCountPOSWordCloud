@@ -25,8 +25,8 @@ import io
 import os
 import re
 from nltk.corpus import stopwords
-from nltk.tokenize.punkt import PunktTokenizer
-from nltk.tag.perceptron import PerceptronTagger
+from nltk.tokenize import word_tokenize
+from nltk.tag import pos_tag
 
 # Function to count the frequency of each word in a text file and identify the part of speech of each word
 def word_frequency_list(file):
@@ -34,20 +34,33 @@ def word_frequency_list(file):
         text = f.read()
         text = text.lower()
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-        tokenizer = PunktTokenizer()
-        words = tokenizer.tokenize(text)
+        
+        # Tokenize the text into words
+        words = word_tokenize(text)
+        print("Tokenized Words:", words)  # Debug print
+        
+        # Remove stop words
         stop_words = set(stopwords.words('english'))
         words = [word for word in words if word not in stop_words]
+        print("Words after removing stop words:", words)  # Debug print
+        
+        # Create a dictionary to store the word frequency
         word_freq = {}
+        # Create a dictionary to store the part of speech of each word
         pos = {}
-        tagger = PerceptronTagger()
-        tagged_words = tagger.tag(words)
+        
+        # Tag the words with their part of speech
+        tagged_words = pos_tag(words)
+        print("Tagged Words:", tagged_words)  # Debug print
+        
+        # For each word in the text
         for word, tag in tagged_words:
             if word in word_freq:
                 word_freq[word] += 1
             else:
                 word_freq[word] = 1
             pos[word] = tag
+        
         return word_freq, pos
 
 # Streamlit app code
