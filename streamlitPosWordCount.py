@@ -67,7 +67,7 @@ def word_frequency_list(file):
 st.title("Word Frequency and POS Tagger")
 
 # App description
-st.write("A simple tool to count the words in a text file and tag them with their part of speech. Oh, and also create a word cloud, because why not?")
+st.write("A very simple tool for processing a text file into a word frequency list, with part of speech tags. Oh, and also create a word cloud, because why not? Start by uploading a plain text file.")
 
 uploaded_file = st.file_uploader("Choose a text file", type="txt")
 
