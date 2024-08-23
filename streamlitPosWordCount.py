@@ -1,20 +1,8 @@
 import nltk
-import streamlit as st
-from wordcloud import WordCloud
-import pandas as pd
-import tempfile
-import base64
-from datetime import datetime
-import io
-import os
-import re
-from nltk.corpus import stopwords
-from nltk import pos_tag
-from nltk.tokenize.punkt import PunktTokenizer
 
 def download_nltk_packages():
     nltk_packages = [
-        ('tokenizers', 'punkt_tab'),
+        ('tokenizers', 'punkt'),
         ('corpora', 'stopwords'),
         ('taggers', 'averaged_perceptron_tagger'),
     ]
@@ -27,6 +15,19 @@ def download_nltk_packages():
 
 download_nltk_packages()
 
+import streamlit as st
+from wordcloud import WordCloud
+import pandas as pd
+import tempfile
+import base64
+from datetime import datetime
+import io
+import os
+import re
+from nltk.corpus import stopwords
+from nltk import pos_tag
+from nltk.tokenize import word_tokenize
+
 #function to count the frequency of each word in a text file and identify the part of speech of each word
 def word_frequency_list(file):
     # open the file
@@ -38,8 +39,7 @@ def word_frequency_list(file):
         # remove symbols and special characters
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
         # tokenize the text into words
-        tokenizer = PunktTokenizer()
-        words = tokenizer.tokenize(text)
+        words = word_tokenize(text)
         # remove stop words
         stop_words = set(stopwords.words('english'))
         words = [word for word in words if word not in stop_words]
