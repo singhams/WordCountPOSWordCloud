@@ -28,6 +28,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import PunktTokenizer
 from nltk.tag import pos_tag
+from nltk.tag.perceptron import PerceptronTagger
 
 # Function to count the frequency of each word in a text file and identify the part of speech of each word
 def word_frequency_list(file):
