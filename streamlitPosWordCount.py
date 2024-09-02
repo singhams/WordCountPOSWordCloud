@@ -1,6 +1,19 @@
 import nltk
 
-nltk.download('tokenizers','punkt','punkt_tab','corpora','stopwords','taggers','averaged_perceptron_tagger')
+def download_nltk_packages():
+    nltk_packages = [
+        ('tokenizers', 'punkt'),
+        ('corpora', 'stopwords'),
+        ('taggers', 'averaged_perceptron_tagger'),
+    ]
+
+    for package in nltk_packages:
+        try:
+            nltk.data.find(f'{package[0]}/{package[1]}')
+        except LookupError:
+            nltk.download(package[1])
+
+download_nltk_packages()
 
 import streamlit as st
 from wordcloud import WordCloud
