@@ -1,6 +1,6 @@
 import nltk
 
-nltk.download('tokenizers','punkt','corpora','stopwords','taggers','averaged_perceptron_tagger')
+nltk.download('tokenizers','punkt','punkt_tab','corpora','stopwords','taggers','averaged_perceptron_tagger')
 
 import streamlit as st
 from wordcloud import WordCloud
